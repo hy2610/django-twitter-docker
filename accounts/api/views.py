@@ -17,6 +17,7 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+
 class AccountViewSet(viewsets.ViewSet):
     serializer_class = SignupSerializer
 
@@ -34,32 +35,28 @@ class AccountViewSet(viewsets.ViewSet):
 
     @action(methods=['POST'], detail=False)
     def login(self, request):
+        """
+        默认的 username 是 admin, password 也是 admin
+        """
         serializer = LoginSerializer(data=request.data)
         if not serializer.is_valid():
             return Response({
-                'success': False,
-                'message': 'Please check again',
-                'errors': serializer.errors,
+                "success": False,
+                "message": "Please check input",
+                "errors": serializer.errors,
             }, status=400)
         username = serializer.validated_data['username']
         password = serializer.validated_data['password']
-
-        if not User.objects.filter(userame=username).exists():
-            return Response({
-                'success': False,
-                'message': 'user does not exist',
-            }, status=400)
         user = django_authenticate(username=username, password=password)
         if not user or user.is_anonymous:
             return Response({
-                'success': False,
-                'message': 'username and password does not match',
+                "success": False,
+                "message": "username and password does not match",
             }, status=400)
-
         django_login(request, user)
         return Response({
-            'success': True,
-            'message': UserSerializer(user).data,
+            "success": True,
+            "user": UserSerializer(instance=user).data,
         })
 
     @action(methods=['POST'], detail=False)
