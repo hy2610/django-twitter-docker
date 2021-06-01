@@ -36,3 +36,14 @@ class CommentsSerializerForCreate(serializers.ModelSerializer):
             tweet_id=validated_data['tweet_id'],
             content = validated_data['content'],
         )
+
+
+class CommentsSerializerForUpdate(serializers.ModelSerializer):
+    class Meta:
+        model=Comment
+        fields = ('content',)
+
+    def update(self, instance, validated_data):
+        instance.content = validated_data['content']
+        instance.save()
+        return instance
