@@ -11,6 +11,7 @@ from comments.api.serializers import CommentsSerializerForUpdate
 class CommentsViewSets(viewsets.GenericViewSet):
     serializer_class = CommentsSerializerForCreate
     queryset = Comment.objects.all()
+    filterset_fields=('tweet_id',)
 
     def get_permissions(self):
         if self.action == 'create':
@@ -19,21 +20,26 @@ class CommentsViewSets(viewsets.GenericViewSet):
             return [IsAuthenticated(), IsObjectOwner()]
         return [AllowAny()]
 
-    def create(self, request):
+    def create(self, request, *args, **kwargs):
         data = {
             'user_id': request.user.id,
             'tweet_id': request.data.get('tweet_id'),
             'content': request.data.get('content'),
         }
+        # 注意这里必须要加 'data=' 来指定参数是传给 data 的
+        # 因为默认的第一个参数是 instance
         serializer = CommentsSerializerForCreate(data=data)
         if not serializer.is_valid():
             return Response({
-                'success': False,
-                'message': 'Please Check Input',
+                'message': 'Please check input',
                 'errors': serializer.errors,
             }, status=status.HTTP_400_BAD_REQUEST)
+        # save 方法会触发 serializer 里的 create 方法，点进 save 的具体实现里可以看到
         comment = serializer.save()
-        return Response(CommentsSerializer(comment).data, status=201)
+        return Response(
+            CommentsSerializer(comment).data,
+            status=status.HTTP_201_CREATED,
+        )
 
     def update(self, request, pk):
         serializer = CommentsSerializerForUpdate(
@@ -54,6 +60,23 @@ class CommentsViewSets(viewsets.GenericViewSet):
         return Response({
             'success': True,
         }, status=status.HTTP_200_OK)
+
+    def list(self, request, *args, **kwargs):
+        if 'tweet_id' not in request.query_params:
+            return Response(
+                {
+                    'message': 'missing tweet_id in request',
+                    'success': False,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        queryset = self.get_queryset()
+        comments = self.filter_queryset(queryset).order_by('created_at')
+        serializer = CommentsSerializer(comments, many=True)
+        return Response(
+            {'comments': serializer.data},
+            status=status.HTTP_200_OK,
+        )
 
 
 
