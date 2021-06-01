@@ -7,4 +7,4 @@ class CommentModelTests(TestCase):
         user = self.create_user(username='linghu')
         tweet = self.create_tweet(user)
         comment = self.create_comment(user, tweet)
-        self.asserNotEqual(comment.__str__(), None)
+        self.assertNotEqual(comment.__str__(), None)
