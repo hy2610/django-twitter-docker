@@ -1,7 +1,7 @@
-from testing.testcases import TestCase
-from rest_framework.test import APIClient
 from comments.models import Comment
 from django.utils import timezone
+from rest_framework.test import APIClient
+from testing.testcases import TestCase
 
 COMMENT_URL = '/api/comments/'
 
@@ -112,12 +112,14 @@ class CommentsApiTest(TestCase):
         self.assertEqual(len(response.data['comments']), 0)
 
         # 评论按照时间顺序排序
+        count_1 = Comment.objects.count()
         self.create_comment(self.linghu, self.tweet, '1')
         self.create_comment(self.dongxie, self.tweet, '2')
         self.create_comment(self.dongxie, self.create_tweet(self.dongxie), '3')
         response = self.anonymous_client.get(COMMENT_URL, {
             'tweet_id': self.tweet.id,
         })
+        self.assertEqual(Comment.objects.count(), count_1+3)
         self.assertEqual(len(response.data['comments']), 2)
         self.assertEqual(response.data['comments'][0]['content'], '1')
         self.assertEqual(response.data['comments'][1]['content'], '2')
