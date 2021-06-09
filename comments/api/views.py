@@ -6,12 +6,13 @@ from comments.api.serializers import CommentsSerializerForCreate
 from comments.api.serializers import CommentsSerializer
 from comments.api.permissions import IsObjectOwner
 from comments.api.serializers import CommentsSerializerForUpdate
+from utils.decorators import require_params
 
 
 class CommentsViewSets(viewsets.GenericViewSet):
     serializer_class = CommentsSerializerForCreate
     queryset = Comment.objects.all()
-    filterset_fields=('tweet_id',)
+    filterset_fields = ('tweet_id',)
 
     def get_permissions(self):
         if self.action == 'create':
@@ -61,15 +62,8 @@ class CommentsViewSets(viewsets.GenericViewSet):
             'success': True,
         }, status=status.HTTP_200_OK)
 
+    @require_params(params=['tweet_id'])
     def list(self, request, *args, **kwargs):
-        if 'tweet_id' not in request.query_params:
-            return Response(
-                {
-                    'message': 'missing tweet_id in request',
-                    'success': False,
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
         queryset = self.get_queryset()
         comments = self.filter_queryset(queryset).order_by('created_at')
         serializer = CommentsSerializer(comments, many=True)

@@ -2,6 +2,7 @@ from rest_framework import serializers
 from tweets.models import Tweet
 from django.contrib.auth.models import User
 from accounts.api.serializers import UserSerializerForTweet
+from comments.api.serializers import CommentsSerializer
 
 
 class TweetSerializer(serializers.ModelSerializer):
@@ -24,6 +25,14 @@ class TweetSerializerForCreate(serializers.ModelSerializer):
         content = validated_data['content']
         tweet = Tweet.objects.create(user=user, content=content)
         return tweet
+
+
+class TweetSerializerForComments(TweetSerializer):
+    comments = CommentsSerializer(source='comment_set', many=True)
+
+    class Meta:
+        model = Tweet
+        fields = ('id', 'user', 'created_at', 'content', 'comments')
 
 
 
