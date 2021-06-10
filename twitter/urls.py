@@ -33,6 +33,7 @@ router.register(r'api/tweets', TweetViewSet, basename='tweets')
 router.register(r'api/friendships', FriendshipViewSet, basename='friendships')
 router.register(r'api/newsfeed', NewsFeedViewSet, basename='newsfeed')
 router.register(r'api/comments', CommentsViewSets, basename='comments')
+router.register(r'api/likes', CommentsViewSets, basename='likes')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
