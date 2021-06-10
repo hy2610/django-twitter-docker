@@ -38,7 +38,7 @@ class CommentsViewSets(viewsets.GenericViewSet):
         # save 方法会触发 serializer 里的 create 方法，点进 save 的具体实现里可以看到
         comment = serializer.save()
         return Response(
-            CommentsSerializer(comment).data,
+            CommentsSerializer(comment, context={'request': request}).data,
             status=status.HTTP_201_CREATED,
         )
 
@@ -52,7 +52,7 @@ class CommentsViewSets(viewsets.GenericViewSet):
                 'message': 'Please Check Input',
             }, status=400)
         comment = serializer.save()
-        return Response(CommentsSerializer(comment).data, status=status.HTTP_200_OK)
+        return Response(CommentsSerializer(comment, context={'request': request}).data, status=status.HTTP_200_OK)
 
     def destroy(self, request, pk):
         comment = self.get_object()
@@ -66,7 +66,11 @@ class CommentsViewSets(viewsets.GenericViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         comments = self.filter_queryset(queryset).order_by('created_at')
-        serializer = CommentsSerializer(comments, many=True)
+        serializer = CommentsSerializer(
+            comments,
+            context={'request': request},
+            many=True,
+        )
         return Response(
             {'comments': serializer.data},
             status=status.HTTP_200_OK,
